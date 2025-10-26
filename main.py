@@ -1,16 +1,38 @@
-# This is a sample Python script.
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+import models, schemas, crud
+from database import engine, get_db
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+#creat table in database
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+@app.post("/shorten" , response_model=schemas.URl)
+def create_short_url(url:schemas.URLCreate):
+    db = next(get_db())
+    db_url = crud.create_short_url(db=db , original_url=url.original_url)
+    return db_url
+
+@app.get("/{short_code}")
+def redirect_to_original(short_code: str):
+    db = next(get_db())
+    db_url = crud.get_url_by_short_code(db=db, short_code=short_code)
+
+    if not db_url:
+        raise HTTPException(status_code=404 , detail="url not found i'm sorry.")
+
+    return {"original_url" : db_url.original_url}
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+
+
+
+
+
+
