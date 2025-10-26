@@ -10,7 +10,8 @@ app = FastAPI()
 
 @app.post("/shorten" , response_model=schemas.URl)
 def create_short_url(url:schemas.URLCreate):
-    db = next(get_db())
+    url : schemas.URLCreate
+    db : Session = Depends(get_db())
     db_url = crud.create_short_url(db=db , original_url=url.original_url)
     return db_url
 
