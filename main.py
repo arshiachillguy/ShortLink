@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, crud
 from database import engine, get_db
-
+from fastapi.responses import RedirectResponse
 #creat table in database
 models.Base.metadata.create_all(bind=engine)
 
@@ -17,13 +17,13 @@ def create_short_url(url:schemas.URLCreate):
 
 @app.get("/{short_code}")
 def redirect_to_original(short_code: str):
-    db = next(get_db())
+    db : Session = Depends(get_db())
     db_url = crud.get_url_by_short_code(db=db, short_code=short_code)
 
     if not db_url:
         raise HTTPException(status_code=404 , detail="url not found i'm sorry.")
 
-    return {"original_url" : db_url.original_url}
+    return RedirectResponse(url=db_url.original_url)
 
 
 
